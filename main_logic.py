@@ -1,7 +1,8 @@
 from pytube import YouTube
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ui import Ui_Ramz_ild
-import sys
+import sys,os
+import moviepy.editor as mpe
 
 
 def down(link):
@@ -9,10 +10,22 @@ def down(link):
         yt = YouTube('%s'%link)
         yt = yt.streams.filter(progressive=True,file_extension='mp4').order_by('resolution').desc().first()
         yt.download()
-        ui.lineEdit.setText('Успешно')
+        ui.link_l.setText('Успешно')
     except:
-        ui.lineEdit.setText('Неверная ссылка')
+        ui.link_l.setText('Ошибка')
 
+def down_sound(link):
+    try:
+        yt = YouTube('%s'%link)
+        yt = yt.streams.filter(progressive=False,file_extension='mp4').first()
+        yt.download(filename='s')
+        video = mpe.VideoFileClip('s.mp4')
+        video.audio.write_audiofile('sound.mp3')
+        video.close()
+        os.remove('s.mp4')
+        ui.link_l.setText('Успешно')
+    except:
+        ui.link_l.setText('Ошибка')
 
 app = QtWidgets.QApplication(sys.argv)
 Ramz_ild = QtWidgets.QMainWindow()
@@ -20,6 +33,11 @@ ui = Ui_Ramz_ild()
 ui.setupUi(Ramz_ild)
 Ramz_ild.show()
 def start():
-    down(ui.lineEdit.text())
-ui.pushButton.clicked.connect(start)
+    if ui.video_check.isChecked() == True:
+        down(ui.link_l.text())
+    if ui.audio_check.isChecked() == True:
+        down_sound(ui.link_l.text())
+    if ui.video_check.isChecked() == False and ui.audio_check.isChecked() == False:
+        ui.link_l.setText('Выберите параметр')
+ui.down_p.clicked.connect(start)
 sys.exit(app.exec_())
